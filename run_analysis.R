@@ -1,4 +1,7 @@
 run_analysis <- function() {
+        
+        require(package="reshape2")
+        
         ## load and unzip
         
         if(!file.exists("./data")){dir.create("./data")}
@@ -41,7 +44,7 @@ run_analysis <- function() {
         tidy <- dcast(molten, formula = subject + label ~ variable, mean)
         
         ## save it
-        write.table(merged, file = "tidy.txt")
+        write.table(tidy, file = "tidy.txt")
         
         tidy
 }
