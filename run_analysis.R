@@ -16,32 +16,37 @@ run_analysis <- function() {
         features <- read.table("./data/UCI HAR Dataset/features.txt")
         colnames(features) <- c("column", "fname")
         
-        ## Merges the training and the test sets to create one data set.
+        ## Merge the training and the test sets to create one data set.
         X <- rbind(read.table("./data/UCI HAR Dataset/test/X_test.txt"), 
                    read.table("./data/UCI HAR Dataset/train/X_train.txt"))
         colnames(X) <- features$fname
         
-        ## Extracts only the measurements on the mean and standard deviation for each measurement. 
+        ## Extract only the measurements on the mean and standard deviation for each measurement. 
         extracted <- X[,grep("(-mean\\(\\)|-std\\(\\))", features$fname)]
+        
+        ## makes column names more tidy
+        tidycolnames <- sub("-", "", colnames(extracted))
+        tidycolnames <- sub("-", "", tidycolnames)
+        tidycolnames <- sub("\\(", "", tidycolnames)
+        tidycolnames <- tolower(sub("\\)", "", tidycolnames))
+        colnames(extracted) <- tidycolnames
         
         ## further prepare datas
         y <- rbind(read.table("./data/UCI HAR Dataset/test/y_test.txt"), read.table("./data/UCI HAR Dataset/train/y_train.txt"))
-        colnames(y) <- "label"
+        colnames(y) <- "activity"
         
         subject <- rbind(read.table("./data/UCI HAR Dataset/test/subject_test.txt"), read.table("./data/UCI HAR Dataset/train/subject_train.txt"))
         colnames(subject) <- "subject"
         
         merged <- cbind(subject, y, extracted)
         
-        ## Uses descriptive activity names to name the activities in the data set
-        ## Appropriately labels the data set with descriptive activity names. 
-        merged$label <- factor(merged$label, labels=activity_labels$actname)
+        ## Use descriptive activity names to name the activities in the data set
+        ## Appropriately label the data set with descriptive activity names. 
+        merged$activity <- factor(merged$activity, labels=activity_labels$actname)
         
-        ## Creates a second, independent tidy data set with the average of each variable for each activity and each subject. 
-        ## tmp <- sapply(split(merged, list(merged$subject, merged$label)), function(x){colMeans(x[,as.vector(features$fname[grep("(-mean\\(\\)|-std\\(\\))", features$fname)])])})
-      
-        molten <- melt(merged, id = c("subject", "label"))
-        tidy <- dcast(molten, formula = subject + label ~ variable, mean)
+        ## Create a second, independent tidy data set with the average of each variable for each activity and each subject. 
+        molten <- melt(merged, id = c("subject", "activity"))
+        tidy <- dcast(molten, formula = subject + activity ~ variable, mean)
         
         ## save it
         write.table(tidy, file = "tidy.txt")
